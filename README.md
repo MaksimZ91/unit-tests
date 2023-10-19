@@ -119,3 +119,230 @@ class VehicleTest {
     }
 }
 ```
+
+# Урок 3. Качество тестов.
+
+Задание 1.
+Напишите тесты, покрывающие на 100% метод evenOddNumber, который проверяет, является ли переданное число четным или нечетным. (код приложен в презентации)
+Задание 2.
+Разработайте и протестируйте метод numberInInterval, который проверяет, попадает ли переданное число в интервал (25;100). (код приложен в презентации)
+
+## Class MainHW 
+
+```java
+package seminars.third.hw;
+
+public class MainHW {
+
+    // HW 3.1. Нужно покрыть тестами метод на 100%
+    // Метод проверяет, является ли целое число записанное в переменную n, чётным (true) либо нечётным (false).
+
+   public boolean evenOddNumber(int n) {
+        return n % 2 == 0;
+    }
+
+    // HW 3.2. Нужно написать метод, который проверяет,
+    // попадает ли переданное число в интервал (25;100) и возвращает true, если попадает и false - если нет,
+    // покрыть тестами метод на 100%
+
+    public  boolean numberInInterval(int n){
+        return  n > 25 && n < 100;
+    }
+}
+```
+## Class MainHWTest
+```java
+package seminars.third.hw;
+
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+public class MainHWTest {
+    MainHW mainHW;
+
+    @BeforeEach
+    void setUp(){
+        mainHW = new MainHW();
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints={6,12,8,2,4,0})
+    void evenOddPositiveNumberReturnTrue(int input){
+        assertTrue(mainHW.evenOddNumber(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints={3,5,7,13,9})
+    void evenOddPositiveNumberReturnFalse(int input){
+        assertFalse(mainHW.evenOddNumber(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints={-6,-12,-8,-2,-4})
+    void evenOddNegativeNumberReturnTrue(int input){
+        assertTrue(mainHW.evenOddNumber(input));
+
+    }
+    @ParameterizedTest
+    @ValueSource(ints={-3,-5,-7,-13,-9})
+    void evenOddNegativeNumberReturnFalse(int input){
+        assertFalse(mainHW.evenOddNumber(input));
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints={26,50,85,99})
+    void numberInIntervalNumberReturnTrue(int input){
+        assertTrue(mainHW.numberInInterval(input));
+    }
+    @ParameterizedTest
+    @ValueSource(ints={-3,25,24,100,101,15})
+    void numberInIntervalNumberReturnFalse(int input){
+        assertFalse(mainHW.numberInInterval(input));
+    }
+}
+```
+Задание 3.  (необязательное)
+Добавьте функцию в класс UserRepository, которая разлогинивает всех пользователей, кроме администраторов. Для этого, вам потребуется расширить класс User новым свойством, указывающим, обладает ли пользователь админскими правами. Протестируйте данную функцию.
+## Class User
+```java
+package seminars.third.tdd;
+
+import java.util.Objects;
+
+public class User {
+
+    String name;
+    String password;
+
+    boolean isAuthenticate = false;
+
+    boolean isAdmin = false;
+
+    public User(String name, String password, boolean isAdmin) {
+        this.name = name;
+        this.password = password;
+        this.isAdmin = isAdmin;
+    }
+
+    //3.6.
+    public boolean authenticate(String name, String password) {
+        isAuthenticate = Objects.equals(this.name, name) &&  Objects.equals(this.password, password);
+        return isAuthenticate;
+    }
+}
+```
+
+## Class UserRepository
+```java
+package seminars.third.tdd;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class UserRepository {
+
+    // Тут можно хранить аутентифицированных пользователей
+    List<User> data = new ArrayList<>();
+
+    public void addUser(User user) {
+       if(!user.isAuthenticate) return;
+       data.add(user);
+    }
+
+    public  void logOut(){
+        data.removeIf(user -> !user.isAdmin);
+    }
+
+    public boolean findByName(String username) {
+        for (User user : data) {
+            if (user.name.equals(username)) {
+                return true;
+            }
+        }
+        return false;
+    }
+}
+```
+## Class UserTest
+```java
+package seminars.third.tdd;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class UserTest {
+    static UserRepository repository;
+    @BeforeAll
+    static void setUp(){
+        repository = new UserRepository();
+    }
+
+    /*Добавьте функцию в класс UserRepository, которая разлогинивает всех пользователей, кроме администраторов.
+      Для этого, вам потребуется расширить класс User новым свойством, указывающим, обладает ли пользователь админскими правами.
+     Протестируйте данную функцию. */
+
+    @Test
+    void checkRepositoryAddAdminUserPositive(){
+        String name = "name";
+        String password = "password";
+        String nameAdmin = "nameAdmin";
+        String passwordAdmin = "passwordAdmin";
+
+        User user = new User(name, password, false);
+        User admin = new User(nameAdmin, passwordAdmin, true);
+        user.authenticate(name, password);
+        admin.authenticate(nameAdmin, passwordAdmin);
+        repository.addUser(user);
+        repository.addUser(admin);
+
+        assertTrue(repository.data.get(1).isAdmin);
+    }
+
+    @Test
+    void checkRepositoryAddNotAdminUserPositive(){
+        String name = "name";
+        String password = "password";
+        String nameAdmin = "nameAdmin";
+        String passwordAdmin = "passwordAdmin";
+
+        User user = new User(name, password, false);
+        User admin = new User(nameAdmin, passwordAdmin, false);
+        user.authenticate(name, password);
+        admin.authenticate(nameAdmin, passwordAdmin);
+        repository.addUser(user);
+        repository.addUser(admin);
+
+        assertFalse(repository.data.get(1).isAdmin);
+    }
+
+    @Test
+    void checkRepositoryLogOutUser(){
+        String name = "name";
+        String password = "password";
+        String nameAdmin = "nameAdmin";
+        String passwordAdmin = "passwordAdmin";
+
+        User user = new User(name, password, false);
+        User admin = new User(nameAdmin, passwordAdmin, true);
+        user.authenticate(name, password);
+        admin.authenticate(nameAdmin, passwordAdmin);
+        repository.addUser(user);
+        int currentCount = repository.data.size();
+        repository.addUser(admin);
+        repository.logOut();
+
+        assertThat(repository.data.size())
+                .isEqualTo(currentCount);
+    }
+
+}
+```
+
