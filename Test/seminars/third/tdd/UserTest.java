@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class UserTest {
+
     static UserRepository repository;
     @BeforeAll
     static void setUp(){
@@ -126,8 +127,5 @@ public class UserTest {
         assertThat(repository.data.size())
                 .isEqualTo(currentCount);
     }
-
-
-
 
 }
