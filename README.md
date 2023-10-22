@@ -345,4 +345,154 @@ public class UserTest {
 
 }
 ```
+# Урок 4. Зависимости в тестах
+Задание 1. Ответьте письменно на вопросы:  
+
+1.Почему использование тестовых заглушек может быть полезным при написании модульных тестов?  
+Использование тестовых заглушек может быть полезным при написании модульных тестов, так как они изолируют нашу систему от внешних связей, таки образом мы можем тестировать только функционал нашей системы, при этом увеличиваться скорость тестирования.
+
+2.Какой тип тестовой заглушки следует использовать, если вам нужно проверить, что метод был вызван с определенными аргументами?  
+Для реализации такового рода тестов хорошо подойдут шпионы или моки.
+
+3.Какой тип тестовой заглушки следует использовать, если вам просто нужно вернуть определенное значение или исключение в ответ на вызов метода?  
+Для реализации такового рода тестов хорошо подойдут стабы.
+
+4.Какой тип тестовой заглушки вы бы использовали для имитации  взаимодействия с внешним API или базой данных?  
+Для это го хорошо подойдут фейки т.к. они заменяют функциональность вызываемого компонента альтернативной реализацией.
+
+Задание 2.
+У вас есть класс BookService, который использует интерфейс BookRepository для получения информации о книгах из базы данных. Ваша задача написать unit-тесты для BookService, используя Mockito для создания мок-объекта BookRepository.
+
+## Class BookTest
+```java
+package seminars.fourth.hw;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+public class BookTest {
+    Book book;
+    @BeforeEach
+    void setUp(){
+        book = new Book("1", "Название", "Автор");
+    }
+
+    @Test
+    void constructorBookTest(){
+        Book book1 = new Book("5");
+        assertThat(book1.getId()).isEqualTo("5");
+        assertThat(book1.getTitle()).isEqualTo(null);
+        assertThat(book1.getAuthor()).isEqualTo(null);
+    }
+
+    @Test
+    void getIdTest(){
+        assertThat(book.getId()).isEqualTo("1");
+    }
+
+    @Test
+    void getTitleTest(){
+        assertThat(book.getTitle()).isEqualTo("Название");
+    }
+
+    @Test
+    void getAuthor(){
+        assertThat(book.getAuthor()).isEqualTo("Автор");
+    }
+
+    @Test
+    void setIdTest(){
+        book.setId("2");
+        assertThat(book.getId()).isEqualTo("2");
+    }
+    @Test
+    void setTitleTest(){
+        book.setTitle("Название2");
+        assertThat(book.getTitle()).isEqualTo("Название2");
+    }
+    @Test
+    void setAuthor(){
+        book.setAuthor("Автор2");
+        assertThat(book.getAuthor()).isEqualTo("Автор2");
+    }
+
+}
+
+```
+
+## Class InMemoryBookRepositoryTest
+```java
+package seminars.fourth.hw;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+
+public class InMemoryBookRepositoryTest {
+    InMemoryBookRepository in;
+    @BeforeEach
+    void setUp(){
+        in = new InMemoryBookRepository();
+    }
+
+    @Test
+    void findByIdTest(){
+        assertThat(in.findById("1").getAuthor()).isEqualTo("Author1");
+    }
+
+    @Test
+    void findAllTest(){
+        assertThat(in.findAll()).isNotEmpty().hasSize(2);
+    }
+}
+
+```
+
+## Class BookServiceTest
+```java
+package seminars.fourth.hw;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.*;
+
+public class BookServiceTest {
+    Book book;
+    @BeforeEach
+    void setUp(){
+        book = new Book("1", "Book1", "Author1");
+    }
+    @Test
+    void testBookServiceMethodFindBookById(){
+        BookRepository bookRepository = mock(BookRepository.class);
+        BookService bookService = new BookService(bookRepository);
+        when(bookService.findBookById("1")).thenReturn(book);
+        Book bk = bookRepository.findById("1");
+        verify(bookRepository, times(1)).findById("1");
+        assertThat(bk).isEqualTo(book);
+    }
+
+    @Test
+    void testBookServiceMethodFindAllBooks(){
+        BookRepository bookRepository = mock(BookRepository.class);
+        BookService bookService = new BookService(bookRepository);
+        when(bookService.findAllBooks()).thenReturn(Arrays.asList(book,book));
+        List <Book> books = bookRepository.findAll();
+        verify(bookRepository, times(1)).findAll();
+        assertThat(books).isNotEmpty().hasSize(2).isEqualTo(Arrays.asList(book,book));
+    }
+}
+```
+
+ 
 
